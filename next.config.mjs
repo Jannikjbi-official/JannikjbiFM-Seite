@@ -8,6 +8,12 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: ['blob.v0.app'],
+  },
+  output: 'standalone',
+  trailingSlash: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 }
 
