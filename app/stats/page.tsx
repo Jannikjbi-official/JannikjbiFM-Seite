@@ -16,11 +16,7 @@ export default function StatsPage() {
         </div>
 
         {/* AzuraCast Stats */}
-        <AzuraCastStats
-          baseUrl="https://your-azuracast-url"
-          stationId="1"
-          // apiKey="your-api-key" // Optional for authenticated endpoints
-        />
+        <AzuraCastStats />
       </div>
     </div>
   )

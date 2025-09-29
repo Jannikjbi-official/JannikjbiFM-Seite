@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Play, Pause, Volume2, VolumeX, Radio, Download, Share2, Heart } from "lucide-react"
 import { useAzuraCast } from "./azuracast-integration"
+import { AZURACAST_CONFIG } from "@/lib/azuracast-config"
 
 interface EnhancedLivePlayerProps {
   azuracastUrl?: string
@@ -17,13 +18,13 @@ interface EnhancedLivePlayerProps {
 }
 
 export function EnhancedLivePlayer({
-  azuracastUrl = "https://your-azuracast-url",
-  stationId = "1",
-  fallbackStreamUrl = "https://your-azuracast-url/radio/8000/radio.mp3",
-  stationName = "jannikjbiFM",
+  azuracastUrl = AZURACAST_CONFIG.baseUrl,
+  stationId = AZURACAST_CONFIG.stationId,
+  fallbackStreamUrl = AZURACAST_CONFIG.fallbackStreamUrl,
+  stationName = AZURACAST_CONFIG.stationName,
 }: EnhancedLivePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolume] = useState([75])
+  const [volume, setVolume] = useState([AZURACAST_CONFIG.settings.defaultVolume])
   const [isMuted, setIsMuted] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)

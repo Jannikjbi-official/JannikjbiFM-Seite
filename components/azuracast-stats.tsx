@@ -6,14 +6,19 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Users, Radio, Clock, TrendingUp, Globe, Headphones } from "lucide-react"
 import { useAzuraCastAPI, type AzuraCastListeners, type AzuraCastSongHistory } from "./azuracast-integration"
+import { AZURACAST_CONFIG } from "@/lib/azuracast-config"
 
 interface AzuraCastStatsProps {
-  baseUrl: string
-  stationId: string | number
+  baseUrl?: string
+  stationId?: string | number
   apiKey?: string
 }
 
-export function AzuraCastStats({ baseUrl, stationId, apiKey }: AzuraCastStatsProps) {
+export function AzuraCastStats({
+  baseUrl = AZURACAST_CONFIG.baseUrl,
+  stationId = AZURACAST_CONFIG.stationId,
+  apiKey = AZURACAST_CONFIG.apiKey,
+}: AzuraCastStatsProps) {
   const { nowPlaying, loading, error } = useAzuraCastAPI(baseUrl, stationId, apiKey)
   const [listeners, setListeners] = useState<AzuraCastListeners | null>(null)
   const [songHistory, setSongHistory] = useState<AzuraCastSongHistory[]>([])
