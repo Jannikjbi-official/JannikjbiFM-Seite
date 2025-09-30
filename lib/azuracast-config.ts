@@ -13,7 +13,7 @@ export const AZURACAST_CONFIG = {
   fallbackStreamUrl: "https://admin.jannikjbi.de/listen/jannikjbifm/radio.mp3",
 
   // Station Name
-  stationName: "jannikjbiFM",
+  stationName: "jannikjbifm",
 
   // Weitere Einstellungen
   settings: {
