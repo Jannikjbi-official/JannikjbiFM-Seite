@@ -1,20 +1,15 @@
 // AzuraCast Konfiguration für jannikjbiFM
-// Hier trägst du deine echten AzuraCast-Daten ein
 
 export const AZURACAST_CONFIG = {
-  // Deine AzuraCast Server URL (ohne / am Ende)
-  // Beispiel: "https://radio.jannikjbifm.de" oder "https://your-server.com:8443"
+  // Deine AzuraCast Server URL
   baseUrl: "https://admin.jannikjbi.de",
 
-  // Deine Station ID (meist 1 für die erste Station)
-  stationId: "1",
+  // Deine Station ID
+  stationId: "jannikjbifm",
 
-  // Optional: API Key für erweiterte Funktionen (Admin-Features)
-  // Findest du in AzuraCast unter Administration > API Keys
-  apiKey: "cd56afcd0eb2c77a:8c34b2fa738b7dd7b2833cd8012521b0", // Leer lassen wenn nicht benötigt
+  // API Key für erweiterte Funktionen
+  apiKey: "cd56afcd0eb2c77a:8c34b2fa738b7dd7b2833cd8012521b0",
 
-  // Stream URLs (werden automatisch von AzuraCast generiert)
-  // Format: https://your-server.com:8000/radio.mp3
   fallbackStreamUrl: "https://admin.jannikjbi.de/listen/jannikjbifm/radio.mp3",
 
   // Station Name
@@ -39,15 +34,28 @@ export const AZURACAST_CONFIG = {
   },
 }
 
-// Hilfsfunktionen für URL-Generierung
 export function getStreamUrl(mount = "radio.mp3") {
-  return `${AZURACAST_CONFIG.baseUrl}/radio/8000/${mount}`
+  return `${AZURACAST_CONFIG.baseUrl}/listen/${AZURACAST_CONFIG.stationId}/${mount}`
 }
 
 export function getApiUrl(endpoint: string) {
-  return `${AZURACAST_CONFIG.baseUrl}/api${endpoint}`
+  // Ensure endpoint starts with /
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+  return `${AZURACAST_CONFIG.baseUrl}/api${cleanEndpoint}`
 }
 
 export function getPublicUrl(path = "") {
-  return `${AZURACAST_CONFIG.baseUrl}${path}`
+  // Ensure path starts with / if provided
+  const cleanPath = path && !path.startsWith("/") ? `/${path}` : path
+  return `${AZURACAST_CONFIG.baseUrl}/public/${AZURACAST_CONFIG.stationId}${cleanPath}`
+}
+
+export const API_ENDPOINTS = {
+  nowPlaying: `/nowplaying/${AZURACAST_CONFIG.stationId}`,
+  station: `/station/${AZURACAST_CONFIG.stationId}`,
+  schedule: `/station/${AZURACAST_CONFIG.stationId}/schedule`,
+  requests: `/station/${AZURACAST_CONFIG.stationId}/requests`,
+  podcasts: `/station/${AZURACAST_CONFIG.stationId}/podcasts`,
+  listeners: `/station/${AZURACAST_CONFIG.stationId}/listeners`,
+  history: `/station/${AZURACAST_CONFIG.stationId}/history`,
 }

@@ -32,6 +32,10 @@ export function EnhancedLivePlayer({
   // Use AzuraCast integration
   const { data: azuraData, loading, error } = useAzuraCast(azuracastUrl, stationId)
 
+  useEffect(() => {
+    console.log("[v0] Player: AzuraCast data", { azuraData, loading, error })
+  }, [azuraData, loading, error])
+
   // Fallback data when AzuraCast is not available
   const currentSong = azuraData?.now_playing?.song?.title || "Shattered Reality"
   const currentArtist = azuraData?.now_playing?.song?.artist || "Torsonic"
@@ -43,6 +47,10 @@ export function EnhancedLivePlayer({
     : 0
 
   useEffect(() => {
+    console.log("[v0] Player: Stream URL", streamUrl)
+  }, [streamUrl])
+
+  useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume[0] / 100
     }
@@ -52,9 +60,11 @@ export function EnhancedLivePlayer({
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
+        console.log("[v0] Player: Paused")
       } else {
+        console.log("[v0] Player: Attempting to play", audioRef.current.src)
         audioRef.current.play().catch((error) => {
-          console.error("Error playing audio:", error)
+          console.error("[v0] Player: Error playing audio:", error)
         })
       }
       setIsPlaying(!isPlaying)

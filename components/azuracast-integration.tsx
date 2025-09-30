@@ -223,19 +223,31 @@ export function useAzuraCast(baseUrl: string, stationId: string | number) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("[v0] AzuraCast: Fetching data from", `${baseUrl}/api/nowplaying/${stationId}`)
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`${baseUrl}/api/nowplaying/${stationId}`)
+        const response = await fetch(`${baseUrl}/api/nowplaying/${stationId}`, {
+          mode: "cors",
+          credentials: "omit",
+          headers: {
+            Accept: "application/json",
+          },
+        })
+
+        console.log("[v0] AzuraCast: Response status", response.status)
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const azuraData = await response.json()
+        console.log("[v0] AzuraCast: Data received", azuraData)
         setData(azuraData)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data")
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch data"
+        console.error("[v0] AzuraCast API Error:", err)
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
@@ -342,13 +354,16 @@ export function useAzuraCastAPI(baseUrl: string, stationId: string | number, api
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
+        console.log("[v0] AzuraCastAPI: Fetching now playing")
         setLoading(true)
         setError(null)
         const data = await api.getNowPlaying()
+        console.log("[v0] AzuraCastAPI: Data received", data)
         setNowPlaying(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data")
-        console.error("AzuraCast API Error:", err)
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch data"
+        console.error("[v0] AzuraCastAPI Error:", err)
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
