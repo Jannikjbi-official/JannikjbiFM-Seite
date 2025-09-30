@@ -24,10 +24,12 @@ export function EnhancedLivePlayer({
   stationName = AZURACAST_CONFIG.stationName,
 }: EnhancedLivePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [volume, setVolume] = useState([AZURACAST_CONFIG.settings.defaultVolume])
   const [isMuted, setIsMuted] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const playPromiseRef = useRef<Promise<void> | null>(null)
 
   // Use AzuraCast integration
   const { data: azuraData, loading, error } = useAzuraCast(azuracastUrl, stationId)
@@ -39,9 +41,9 @@ export function EnhancedLivePlayer({
   // Fallback data when AzuraCast is not available
   const currentSong = azuraData?.now_playing?.song?.title || "Shattered Reality"
   const currentArtist = azuraData?.now_playing?.song?.artist || "Torsonic"
-  const listeners = azuraData?.station?.listeners?.total || 1247
+  const listeners = azuraData?.listeners?.total || azuraData?.station?.listeners?.total || 1247
   const isOnline = azuraData?.station?.is_online ?? true
-  const streamUrl = azuraData?.station?.listen_url || fallbackStreamUrl
+  const streamUrl = azuraData?.station?.mounts?.[0]?.url || azuraData?.station?.listen_url || fallbackStreamUrl
   const songProgress = azuraData?.now_playing
     ? (azuraData.now_playing.elapsed / azuraData.now_playing.duration) * 100
     : 0
@@ -56,18 +58,45 @@ export function EnhancedLivePlayer({
     }
   }, [volume])
 
-  const togglePlay = () => {
-    if (audioRef.current) {
+  const togglePlay = async () => {
+    if (!audioRef.current || isLoading) return
+
+    const audio = audioRef.current
+
+    try {
+      setIsLoading(true)
+
       if (isPlaying) {
-        audioRef.current.pause()
-        console.log("[v0] Player: Paused")
+        // If there's a pending play promise, wait for it first
+        if (playPromiseRef.current) {
+          await playPromiseRef.current.catch(() => {
+            // Ignore errors from the previous play attempt
+          })
+          playPromiseRef.current = null
+        }
+
+        audio.pause()
+        setIsPlaying(false)
       } else {
-        console.log("[v0] Player: Attempting to play", audioRef.current.src)
-        audioRef.current.play().catch((error) => {
-          console.error("[v0] Player: Error playing audio:", error)
-        })
+        // Load the audio if not already loaded
+        if (audio.readyState < 2) {
+          audio.load()
+        }
+
+        // Store the play promise
+        const playPromise = audio.play()
+        playPromiseRef.current = playPromise
+
+        await playPromise
+        playPromiseRef.current = null
+        setIsPlaying(true)
       }
-      setIsPlaying(!isPlaying)
+    } catch (error) {
+      console.error("[v0] Player: Error toggling playback:", error)
+      playPromiseRef.current = null
+      setIsPlaying(false)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -98,7 +127,20 @@ export function EnhancedLivePlayer({
   return (
     <Card className="w-full bg-card/50 backdrop-blur border-primary/20 overflow-hidden">
       <CardContent className="p-0">
-        <audio ref={audioRef} src={streamUrl} preload="none" crossOrigin="anonymous" />
+        <audio
+          ref={audioRef}
+          src={streamUrl}
+          preload="none"
+          onError={(e) => {
+            console.error("[v0] Player: Audio error:", e)
+            setIsPlaying(false)
+            setIsLoading(false)
+          }}
+          onLoadStart={() => setIsLoading(true)}
+          onCanPlay={() => setIsLoading(false)}
+          onPlaying={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
 
         {/* Album Art / Visualizer Background */}
         <div className="relative h-48 bg-gradient-to-br from-primary/20 via-background to-accent/20 overflow-hidden">
@@ -190,9 +232,15 @@ export function EnhancedLivePlayer({
               onClick={togglePlay}
               size="lg"
               className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 pulse-glow"
-              disabled={!isOnline}
+              disabled={!isOnline || isLoading}
             >
-              {isPlaying ? <Pause className="h-7 w-7" /> : <Play className="h-7 w-7 ml-1" />}
+              {isLoading ? (
+                <div className="h-7 w-7 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+              ) : isPlaying ? (
+                <Pause className="h-7 w-7" />
+              ) : (
+                <Play className="h-7 w-7 ml-1" />
+              )}
             </Button>
 
             <div className="flex items-center space-x-3 flex-1">

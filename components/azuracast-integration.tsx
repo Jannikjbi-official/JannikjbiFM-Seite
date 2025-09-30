@@ -223,30 +223,40 @@ export function useAzuraCast(baseUrl: string, stationId: string | number) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("[v0] AzuraCast: Fetching data from", `${baseUrl}/api/nowplaying/${stationId}`)
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`${baseUrl}/api/nowplaying/${stationId}`, {
-          mode: "cors",
-          credentials: "omit",
+        const staticUrl = `${baseUrl}/api/nowplaying_static/${stationId}.json`
+        const regularUrl = `${baseUrl}/api/nowplaying/${stationId}`
+
+        let response = await fetch(staticUrl, {
           headers: {
             Accept: "application/json",
           },
+          cache: "no-cache",
         })
 
-        console.log("[v0] AzuraCast: Response status", response.status)
+        if (!response.ok) {
+          console.log("[v0] AzuraCast: Static endpoint failed, trying regular API")
+          response = await fetch(regularUrl, {
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-cache",
+          })
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const azuraData = await response.json()
-        console.log("[v0] AzuraCast: Data received", azuraData)
+        console.log("[v0] AzuraCast: Data received successfully")
         setData(azuraData)
+        setError(null)
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch data"
-        console.error("[v0] AzuraCast API Error:", err)
+        console.error("[v0] AzuraCast API Error:", errorMessage)
         setError(errorMessage)
       } finally {
         setLoading(false)
@@ -354,15 +364,14 @@ export function useAzuraCastAPI(baseUrl: string, stationId: string | number, api
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
-        console.log("[v0] AzuraCastAPI: Fetching now playing")
         setLoading(true)
         setError(null)
         const data = await api.getNowPlaying()
-        console.log("[v0] AzuraCastAPI: Data received", data)
         setNowPlaying(data)
+        setError(null)
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch data"
-        console.error("[v0] AzuraCastAPI Error:", err)
+        console.error("[v0] AzuraCastAPI Error:", errorMessage)
         setError(errorMessage)
       } finally {
         setLoading(false)
